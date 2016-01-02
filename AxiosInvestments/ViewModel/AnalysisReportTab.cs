@@ -191,6 +191,7 @@ namespace AxiosInvestments.ViewModel
 
             if (!isSingle)
                 equityNow = selectedProperty.TotalCashInvested;
+
             Double allInvestorExtra = investorS.AdditionalAmount/12;
 
             if(!isSingle)
@@ -253,26 +254,26 @@ namespace AxiosInvestments.ViewModel
             return dPoints;
         }
 
-        private IList<DataPoint> CreateDefaultProfit(double years, bool rentChk, bool isSingle)
+        private IList<DataPoint> CreateDefaultProfit(double months, bool rentChk, bool isSingle)
         {
             IList<DataPoint> dPoints = new List<DataPoint>();
             String selectedPropertyName = mMainWindow.CurrentPropertySelected.Text.Replace("Current Property: ", "");
             String selectedOwnerName = mMainWindow.CurrentOwnerSelected.Text.Replace("Current Owner: ", "");
-
             InvestmentProperty selectedProperty = InvestmentProperty.GetSelectedInvestment(mMainWindow, mNewProperties);
             Investor investor = InvestmentProperty.GetSelectedInvestor(mMainWindow, selectedProperty);
             Double percentOwnership = investor.Percentages.First().Value;
 
-
             if (selectedOwnerName != "" && !selectedPropertyName.Contains("Current Property:"))
                 percentOwnership = investor.Percentages.First(p => p.Key.Equals(selectedPropertyName)).Value;
 
+            Double orginalPercentInvested = percentOwnership;
             Double rent = selectedProperty.Rent;
-            Double MonthlyPMI = selectedProperty.Mortgage.PMI / 12;
-            Double MonthlyPropertyTax = selectedProperty.Mortgage.PropertyTax / 12;
+            Double monthlyPmi = selectedProperty.Mortgage.PMI / 12;
+            Double monthlyPropertyTax = selectedProperty.Mortgage.PropertyTax / 12;
 
-            Double profit = 0;
-            Double equityNow = selectedProperty.TotalCashInvested * percentOwnership;
+            Double profit = 0;//Profit for the selected Investor
+            Double equityNow = selectedProperty.TotalCashInvested * percentOwnership;//equity in the house for all owners 
+            Double amountOfCashInvestedInHouse = selectedProperty.TotalCashInvested * percentOwnership;//amount of cash invested in the house as time goes on
 
             if(!isSingle)
            equityNow = selectedProperty.TotalCashInvested;
@@ -285,19 +286,20 @@ namespace AxiosInvestments.ViewModel
             Boolean mortPaid = false;
             Boolean pmiPaid = false;
 
-            for (var i = 0; i < years; i++)
+            for (var i = 0; i < months; i++)
             {
                 if ((equityNow/selectedProperty.Price) >= .20)
                 {
-                    MonthlyPMI = 0;
+                    monthlyPmi = 0;
                     CreatePmiPaidLine(pmiPaid, i);
                     pmiPaid = true;
                 }
 
                 Double remainingPrinciple = selectedProperty.Price - equityNow;
                 Double MortgagePayment = InvestmentProperty.GetMonthlyPayment(selectedProperty, i, remainingPrinciple);
-                Double MortgageTotal = MortgagePayment + MonthlyPMI + MonthlyPropertyTax;
+                Double MortgageTotal = MortgagePayment + monthlyPmi + monthlyPropertyTax;
                 equityNow += MortgagePayment - (selectedProperty.Mortgage.InterestRate / 100 * remainingPrinciple / 12);
+                amountOfCashInvestedInHouse += MortgagePayment - (selectedProperty.Mortgage.InterestRate / 100 * remainingPrinciple / 12) * percentOwnership; //The equity that comes from me as a percentage of ownership
 
                 if (MortgagePayment > 0)
                 {
@@ -316,6 +318,7 @@ namespace AxiosInvestments.ViewModel
                 {
                     dPoints.Add(new DataPoint(i, Math.Floor(profit)));
                     equityNow += allInvestorExtra * 8;
+                    percentOwnership = getUpdatedPercentage(investor, i, amountOfCashInvestedInHouse, equityNow);
                 }
 
                 if (rentChk)//Everyone rent is being added to house equity
@@ -323,6 +326,12 @@ namespace AxiosInvestments.ViewModel
             }
 
             return dPoints;
+        }
+
+        private Double getUpdatedPercentage(Investor investor, int i, Double amountOfCashInvestedInHouse, Double totEquityInHouse)
+        {
+            Double newPercentageOfOwnership = (amountOfCashInvestedInHouse + (i * investor.AdditionalAmount)) / totEquityInHouse;
+            return newPercentageOfOwnership;
         }
 
         private void CreatePmiPaidLine(bool pmiPaid, int i)
@@ -442,7 +451,6 @@ namespace AxiosInvestments.ViewModel
             Double remainingPrinciple = selectedProperty.Price - equityNow;
             Double MortgagePayment = InvestmentProperty.GetMonthlyPayment(selectedProperty, 0, remainingPrinciple);
             Double MortgageTotal = MortgagePayment + MonthlyPMI + MonthlyPropertyTax;
-
 
             mMainWindow.CurrentMortgage.Text = "Current Mortgage: $" + MortgageTotal;
             mMainWindow.CurrentRent.Text = "Rent: $" + selectedProperty.Rent;

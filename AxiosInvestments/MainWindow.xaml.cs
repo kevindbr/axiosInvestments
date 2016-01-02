@@ -153,7 +153,7 @@ namespace AxiosInvestments
         {
             InvestmentProperty newProperty = new InvestmentProperty();
             newProperty.Name = "Glen Haven House";
-            newProperty.Price = 318000;
+            newProperty.Price = 280000;
             newProperty.Rent = 1800;
             newProperty.MaintanceCost = 60;
             newProperty.Description = "New house off Horsetooth rd and Timberline. http://www.zillow.com/homedetails/3719-Kentford-Rd-Fort-Collins-CO-80525/13871691_zpid/";
@@ -187,17 +187,17 @@ namespace AxiosInvestments
             Investor newInvestor2 = new Investor();
             newInvestor2.Name = "Patrick Schmidt";
             newInvestor2.TotalCashInvested = 15000;
-            newInvestor2.AdditionalAmount = 0;
+            newInvestor2.AdditionalAmount = 10000;
 
             Investor newInvestor3 = new Investor();
             newInvestor3.Name = "Ben and Bri Sutton";
-            newInvestor3.TotalCashInvested = 70000;
-            newInvestor3.AdditionalAmount = 0;
+            newInvestor3.TotalCashInvested = 30000;
+            newInvestor3.AdditionalAmount = 10000;
 
             Investor newInvestor4 = new Investor();
             newInvestor4.Name = "Jordan Flatt";
             newInvestor4.TotalCashInvested = 10000;
-            newInvestor4.AdditionalAmount = 0;
+            newInvestor4.AdditionalAmount = 10000;
 
             mNewInvestors.Add(newInvestor);
             mNewInvestors.Add(newInvestor2);
